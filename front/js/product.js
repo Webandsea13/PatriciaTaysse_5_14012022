@@ -62,41 +62,6 @@ fetch(UrlFetch)
 
 //***************gestion de l'ajout au local storage par le bouton envoyer********************
 
-//creation d'un tableau vide qui contiendra tous les choix à ajouter au panier
-const panier = [];
-//problème : elle se vide quand on ouvre la page d'un autre produit
-//solution récupérer d'abord le panier dans le local storage
-/*let panierLinea = localStorage.getItem("panierLocalstorage");
-let panier = JSON.parse(panierLinea);
-console.log(panier);
-*/
-//si le panier est vide, cela ne fonctione pas (null)
-
-/*--------------essai fonction avec choix en format tableau
-//fonction ajouter un choix au panier ou cumuler quantité si choix déjà existant dans le panier(id et couleur identiques)
-function ajout_panier(nouveauchoix) {
-	for (let object of panier) {
-		if (object[0] === nouveauchoix[0] && object[1] === nouveauchoix[1]) {
-			object[2] += nouveauchoix[2];
-		} else {
-			panier.push(nouveauchoix);
-		}
-	}
-}
-*/
-
-//fonction ajouter un choix (!format objet) au panier ou cumuler quantité si choix déjà existant dans le panier (id et couleur)
-
-/*function ajout_panier(nouveauchoix) {
-	for (let objet of panier) {
-		if (nouveauchoix.id == objet.id && nouveauchoix.color == objet.color) {
-			objet.quantity += nouveauchoix.quantity;
-		} else {
-			panier.push(nouveauchoix);
-		}
-	}
-}
-*/
 //écoute du bouton ajouter au panier et recupération d'un choix utilisateur
 document
 	.getElementById("addToCart")
@@ -113,19 +78,13 @@ document
 		let choix = {
 			id: idProduct,
 			color: choixColor,
-			quantity: choixQuantity,
+			quantity: parseInt(choixQuantity),
 		};
 		console.log(choix);
 
 		//ajout du choix dans le tableau panier qui cumule les différents choix
-		// et Vérification de l'existence d'un produit identique ou non avec la fonction ajout_panier
+		// et Vérification de l'existence d'un produit identique ou non avec la fonction ajoutPanier
 
-		panier.push(choix);
 		//ou appel fonction
-		//ajout_panier(choix);
-		console.log(panier);
-
-		//envoi du tableau dans local storage
-		let panierLinea = JSON.stringify(panier);
-		localStorage.setItem("panierLocalstorage", panierLinea);
+		ajoutPanier(choix);
 	});

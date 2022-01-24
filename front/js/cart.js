@@ -1,7 +1,5 @@
 //récupérer le panier dans le local strorage
-let panierLinea = localStorage.getItem("panierLocalstorage");
-let panier = JSON.parse(panierLinea);
-console.log(panier);
+const panier = recupererPanier();
 
 //*************afficher les objets du panier sur la page panier************************
 //boucle pour récupérer les objects du panier
