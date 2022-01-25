@@ -82,9 +82,6 @@ document
 		};
 		console.log(choix);
 
-		//ajout du choix dans le tableau panier qui cumule les différents choix
-		// et Vérification de l'existence d'un produit identique ou non avec la fonction ajoutPanier
-
-		//ou appel fonction
+		// appel fonction
 		ajoutPanier(choix);
 	});
