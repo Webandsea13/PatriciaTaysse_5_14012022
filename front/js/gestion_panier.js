@@ -15,7 +15,8 @@ function sauvegarderPanier(panier) {
 	localStorage.setItem("panierLocalstorage", panierLinea);
 }
 
-//fonction ajouter un choix (!format objet) au panier ou cumuler quantité si choix déjà existant dans le panier (id et couleur)
+//fonction ajouter un choix (!format objet) au panier ou cumuler quantité si
+//choix déjà existant dans le panier (id et couleur)--fonction utilisée dans product.js
 function ajoutPanier(nouveauchoix) {
 	// appel fonction Récupérer le panier existant
 	const panier = recupererPanier();

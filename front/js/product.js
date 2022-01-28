@@ -82,6 +82,6 @@ document
 		};
 		console.log(choix);
 
-		// appel fonction
+		// appel fonction définie dans gestion_panier.js
 		ajoutPanier(choix);
 	});
