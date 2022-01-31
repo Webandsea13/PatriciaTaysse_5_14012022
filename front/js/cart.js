@@ -1,11 +1,59 @@
-//récupérer le panier dans le local storage via la fonction recupererPanier
+//récupérer le panier dans le local storage via la fonction recupererPanier définie dans gestion_panier.js
 const panier = recupererPanier();
 console.log(panier);
 
+// cache des prix des produits pour les utiliser en dehors du fetch
+const prixProduits = {};
+
+//déclaration fonction qui affiche le prix titale et la quantité totale des produits du panier
+const actualiserPrixQuantite = function () {
+	let totalQuantity = 0;
+	let totalPrice = 0;
+	for (let p of panier) {
+		//cumul nombre articles
+		totalQuantity += parseInt(p.quantity);
+
+		//cumul prix
+		//on récupère le prix stocké dans prixProduits grace à la clé p.id
+		//pour le mettre dans la constante prixProduit
+		const prixProduit = prixProduits[p.id];
+		let price = prixProduit * p.quantity;
+		totalPrice += price;
+	}
+
+	//affichage nombre articles
+	document.getElementById("totalQuantity").innerHTML = `${totalQuantity}`;
+	//affichage du prix total
+	document.getElementById("totalPrice").innerHTML = `${totalPrice}`;
+};
+
+//définition de la fonction exécutée au change de la quantité par l'utilisateur
+const modifQuantity = function (event) {
+	//trouver élément proche du clic et contenant les informations du produit
+	let item = event.target.closest(".cart__item");
+
+	//récupérer id et couleur produit concerné
+	const choixId = item.dataset.id;
+	const choixColor = item.dataset.color;
+	//appliquer la nouvelle quantité dans le tableau panier
+	const elementExistant = panier.find(
+		(x) => x.id == choixId && x.color == choixColor
+	);
+
+	elementExistant.quantity = event.target.value;
+
+	//appel fonction sauvegarder panier
+	sauvegarderPanier(panier);
+	recupererPanier();
+	console.log(panier);
+
+	actualiserPrixQuantite();
+};
+
 //*************afficher les objets du panier sur la page panier************************
 //boucle pour récupérer les objects du panier
-let totalQuantity = 0;
-let totalPrice = 0;
+const fetches = [];
+
 for (let p of panier) {
 	//récupération de l'id du produit
 	const idProduct = p.id;
@@ -13,7 +61,7 @@ for (let p of panier) {
 	// Fetch le produit d'id {id}
 	const UrlFetch = "http://localhost:3000/api/products/" + idProduct;
 
-	fetch(UrlFetch)
+	const leFetch = fetch(UrlFetch)
 		.then(function (res) {
 			return res.json();
 		})
@@ -42,78 +90,66 @@ for (let p of panier) {
             </div>
             </div>
             </article>`;
+
+			// stocker le prix en "cache"
+			prixProduits[p.id] = product.price;
+
 			//insertion du html
 			document
 				.getElementById("cart__items")
 				.insertAdjacentHTML("beforeend", objectAsHTML);
-			//cumul nombre articles
-			totalQuantity += p.quantity;
-			console.log(totalQuantity);
-			//affichage nombre articles
-			document.getElementById(
-				"totalQuantity"
-			).innertHTML = `${totalQuantity}`;
-
-			//cumul prix
-			let price = `${product.price}` * `${p.quantity}`;
-			console.log(price);
-			totalPrice += price;
-			console.log(totalPrice);
-			//affichage du prix total
-			document.getElementById("totalPrice").innerHTML = `${totalPrice}`;
 
 			//**********************changement quantité par l'utilisateur*********************
 
 			//écoute click + appel fonction modif quantity
+			//récupérer dans un tableau les éléments susceptibles d'être cliqués +/-
 			let tabItemQuantity = document.querySelectorAll(".itemQuantity");
-			console.log(tabItemQuantity);
-			for (let itemQuantity of tabItemQuantity) {
-				let modifQuantity = function (event) {
-					//trouver élément proche du clic
-					let item = event.target.closest(".cart__item");
-					console.log(item);
-					console.log(itemQuantity);
-					//récupérer id et couleur produit concerné
-					const choixId = item.dataset.id;
-					const choixColor = item.dataset.color;
-					//appliquer la nouvelle quantité dans le tableau panier
-					const elementExistant = panier.find(
-						(x) => x.id == choixId && x.color == choixColor
-					);
 
-					elementExistant.quantity = event.target.value;
-					//appel fonction sauvegarder panier
-					sauvegarderPanier(panier);
-				};
-				itemQuantity.addEventListener("click", modifQuantity);
+			for (let itemQuantity of tabItemQuantity) {
+				itemQuantity.addEventListener("change", modifQuantity);
 			}
 
 			//*************************suppression d'un article************* */
-			//mettre sous forme de boucle pour que le addEventListener fonctionne ?
-			/*
-			document
-			.querySelectorAll(".deleteItem")
-			.addEventListener("click", function (event) {
-			let item = event.target.closest("cart__item");
-			const choixId = item.dataset.id;
-			const choixColor = item.dataset.color;
-			panier = panier.filter((n) => n.id != choixId && n.color != choixColor);
-			sauvegarderPanier(panier);
-			});
-			*/
-		})
+			//récupérer dans un tableau les éléments susceptibles d'etre cliqués pour la suppression
 
+			let tabDeleteItems = document.querySelectorAll(".deleteItem");
+
+			tabDeleteItems.forEach(function (delIt) {
+				delIt.addEventListener("click", function (event) {
+					let item = event.target.closest(".cart__item");
+					const choixId = item.dataset.id;
+					const choixColor = item.dataset.color;
+					const panier = recupererPanier();
+
+					const result = panier.filter(
+						(n) => n.id !== choixId && n.color !== choixColor
+					);
+					console.log(result);
+					sauvegarderPanier(result);
+					//rafraichir page ou afficher nouveau panier
+					window.location.reload();
+				});
+			});
+		})
 		.catch(function (err) {
 			alert("Erreur:" + err);
 		});
+
+	fetches.push(leFetch);
 }
+
+Promise.all(fetches).then(() => {
+	actualiserPrixQuantite();
+});
 
 //**************gestion du formulaire*********************** */
 // sélection du bouton Valider
 
 const btnOrder = document.querySelector("#order");
 
-// Écoute du bouton Valider sur le click pour pouvoir créer, contrôler, valider et envoyer le formulaire et les produits au back-end
+// Écoute du bouton Valider sur le click pour pouvoir créer, contrôler,
+//valider et envoyer le formulaire et les produits au back-end.
+
 //écoute click et création objet contact et tableau product
 btnOrder.addEventListener("click", (event) => {
 	event.preventDefault();
@@ -142,13 +178,13 @@ btnOrder.addEventListener("click", (event) => {
 		let inputFirstName = document.querySelector("#firstName");
 		let message = document.querySelector("#firstNameErrorMsg");
 
-		let firstNameRegExp = new RegExp(`^[A-Za-zéèê -]+$`, `g`);
+		let firstNameRegExp = new RegExp(`^[A-Za-zéèêàç -]+$`, `g`);
 
 		let isValid = firstNameRegExp.test(contact.firstName);
 		console.log(isValid);
 		if (isValid) {
 			inputFirstName.style.backgroundColor = "green";
-			//ne fonctionne qu'en l'absence de texte ????????????????
+
 			message.innerHTML =
 				'<span style="color:green">Prénom valide</span>';
 			return true;
@@ -166,13 +202,13 @@ btnOrder.addEventListener("click", (event) => {
 		let inputLastName = document.querySelector("#lastName");
 		let message = document.querySelector("#lastNameErrorMsg");
 
-		let lastNameRegExp = new RegExp(`^[a-zA-Z-' ]+$`, `g`);
+		let lastNameRegExp = new RegExp(`^[A-Za-zéèêàç -']+$`, `g`);
 
 		let isValid = lastNameRegExp.test(contact.lastName);
 		console.log(isValid);
 		if (isValid) {
 			inputLastName.style.backgroundColor = "green";
-			//ne fonctionne qu'en l'absence de texte ????????????????
+
 			message.innerHTML = '<span style="color:green">Nom valide</span>';
 			return true;
 		} else {
@@ -190,13 +226,13 @@ btnOrder.addEventListener("click", (event) => {
 		let inputAddress = document.querySelector("#address");
 		let message = document.querySelector("#addressErrorMsg");
 
-		let addressRegExp = new RegExp(`^[a-zA-Z0-9\s]{1,15}$`, `g`);
+		let addressRegExp = new RegExp(`^[A-Za-z0-9éèêàç -',]+$`, `g`);
 
 		let isValid = addressRegExp.test(contact.address);
 		console.log(isValid);
 		if (isValid) {
 			inputAddress.style.backgroundColor = "green";
-			//ne fonctionne qu'en l'absence de texte ????????????????
+
 			message.innerHTML =
 				'<span style="color:green">Adresse valide</span>';
 			return true;
@@ -215,13 +251,13 @@ btnOrder.addEventListener("click", (event) => {
 		let inputCity = document.querySelector("#city");
 		let message = document.querySelector("#cityErrorMsg");
 
-		let cityRegExp = new RegExp(`^[a-zA-Z-' ]{1,5}$`, `g`);
+		let cityRegExp = new RegExp(`^[A-Za-z0-9éèêàç -']+$`, `g`);
 
 		let isValid = cityRegExp.test(contact.city);
 		console.log(isValid);
 		if (isValid) {
 			inputCity.style.backgroundColor = "green";
-			//ne fonctionne qu'en l'absence de texte ????????????????
+
 			message.innerHTML = '<span style="color:green">Ville valide</span>';
 			return true;
 		} else {
@@ -249,7 +285,7 @@ btnOrder.addEventListener("click", (event) => {
 		console.log(isValid);
 		if (isValid) {
 			inputMail.style.backgroundColor = "green";
-			//ne fonctionne qu'en l'absence de texte ????????????????
+
 			message.innerHTML = '<span style="color:green">Email valide</span>';
 			return true;
 		} else {
