@@ -5,7 +5,7 @@ console.log(panier);
 // cache des prix des produits pour les utiliser en dehors du fetch
 const prixProduits = {};
 
-//déclaration fonction qui affiche le prix titale et la quantité totale des produits du panier
+//déclaration fonction qui affiche le prix total et la quantité totale des produits du panier
 const actualiserPrixQuantite = function () {
 	let totalQuantity = 0;
 	let totalPrice = 0;
@@ -27,9 +27,9 @@ const actualiserPrixQuantite = function () {
 	document.getElementById("totalPrice").innerHTML = `${totalPrice}`;
 };
 
-//définition de la fonction exécutée au change de la quantité par l'utilisateur
+//définition de la fonction exécutée au change de la quantité par l'utilisateur (ligne 109)
 const modifQuantity = function (event) {
-	//trouver élément proche du clic et contenant les informations du produit
+	//trouver élément proche du clic et contenant les informations du produit concerné
 	let item = event.target.closest(".cart__item");
 
 	//récupérer id et couleur produit concerné
@@ -164,11 +164,11 @@ btnOrder.addEventListener("click", (event) => {
 
 	console.log(contact);
 
-	let product = [];
+	let products = [];
 	for (let p of panier) {
-		product.push(p.id);
+		products.push(p.id);
 	}
-	console.log(product);
+	console.log(products);
 
 	//Controle du formulaire
 	//controle du champ prénom
@@ -202,7 +202,7 @@ btnOrder.addEventListener("click", (event) => {
 		let inputLastName = document.querySelector("#lastName");
 		let message = document.querySelector("#lastNameErrorMsg");
 
-		let lastNameRegExp = new RegExp(`^[A-Za-zéèêàç -']+$`, `g`);
+		let lastNameRegExp = new RegExp(`^[A-Za-zéèêàç '-]+$`, `g`);
 
 		let isValid = lastNameRegExp.test(contact.lastName);
 		console.log(isValid);
@@ -226,7 +226,7 @@ btnOrder.addEventListener("click", (event) => {
 		let inputAddress = document.querySelector("#address");
 		let message = document.querySelector("#addressErrorMsg");
 
-		let addressRegExp = new RegExp(`^[A-Za-z0-9éèêàç -',]+$`, `g`);
+		let addressRegExp = new RegExp(`^[A-Za-z0-9éèêàç ',-]+$`, `g`);
 
 		let isValid = addressRegExp.test(contact.address);
 		console.log(isValid);
@@ -251,7 +251,7 @@ btnOrder.addEventListener("click", (event) => {
 		let inputCity = document.querySelector("#city");
 		let message = document.querySelector("#cityErrorMsg");
 
-		let cityRegExp = new RegExp(`^[A-Za-z0-9éèêàç -']+$`, `g`);
+		let cityRegExp = new RegExp(`^[A-Za-z0-9éèêàç '-]+$`, `g`);
 
 		let isValid = cityRegExp.test(contact.city);
 		console.log(isValid);
@@ -277,7 +277,7 @@ btnOrder.addEventListener("click", (event) => {
 		let message = document.querySelector("#emailErrorMsg");
 
 		let emailRegExp = new RegExp(
-			`^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9-._]+[.][a-z]{2,8}$`,
+			`^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9._-]+[.][a-z]{2,8}$`,
 			`g`
 		);
 
@@ -294,5 +294,43 @@ btnOrder.addEventListener("click", (event) => {
 			message.textContent = "Email invalide, exemple: contact@monsite.fr";
 			return false;
 		}
+	}
+	///////////////////////////////////////////////////////////
+	//si tous les champs du formulaires sont valides//
+	////////////////////////////////////////////////////////////
+	if (
+		FirstNameControl() &&
+		LastNameControl() &&
+		addressControl() &&
+		cityControl() &&
+		mailControl()
+	) {
+		//appel fonction pour envoyer les données contact et product au serveur
+		sendOrder();
+	}
+	function sendOrder() {
+		fetch("http://localhost:3000/api/products/order", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				accept: "application/json",
+			},
+			body: JSON.stringify({ contact, products }),
+		})
+			.then(function (response) {
+				if (response.ok) {
+					return response.json();
+				}
+			})
+
+			.then(function (request) {
+				orderId = request.orderId;
+				console.log(orderId);
+				window.location.href =
+					"../html/confirmation.html?id=" + `${orderId}`;
+			})
+			.catch(function (err) {
+				alert(erreur);
+			});
 	}
 });
