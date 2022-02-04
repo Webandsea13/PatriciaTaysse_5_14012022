@@ -1,9 +1,9 @@
 /**
  * récupérer le panier depuis le local storage
- * params : aucun
- * returns : {array} panier
+ * @params : none
+ * @returns : {array} panier
  */
-function recupererPanier() {
+function loadCart() {
 	let panierLinea = localStorage.getItem("panierLocalstorage");
 	let panier = JSON.parse(panierLinea);
 
@@ -18,7 +18,7 @@ function recupererPanier() {
  * params : {array}
  * returns : {string} panierLinea
  */
-function sauvegarderPanier(panier) {
+function saveCart(panier) {
 	let panierLinea = JSON.stringify(panier);
 	localStorage.setItem("panierLocalstorage", panierLinea);
 }
@@ -26,23 +26,24 @@ function sauvegarderPanier(panier) {
 /**
  * fonction ajouter un choix (!format objet) au panier ou cumuler quantité si
  *choix déjà existant dans le panier (id et couleur)--fonction utilisée dans product.js
- *params : {objet} nouveauChoix
+ *params : {objet} newChoice
  *returns : {string} panierLinea
  */
-function ajoutPanier(nouveauchoix) {
+function addToCart(newChoice) {
 	// appel fonction Récupérer le panier existant
-	const panier = recupererPanier();
+	const panier = loadCart();
 
 	// Ajouter l'élément dans panier ou incrémenter la quantité si élément identique déjà existant
-	//recherche d'un élément identitique :
+	//recherche d'un élément identique :
 	const elementExistant = panier.find(
-		(x) => x.id == nouveauchoix.id && x.color == nouveauchoix.color
+		(x) => x.id == newChoice.id && x.color == newChoice.color
 	);
 	if (elementExistant == null) {
-		panier.push(nouveauchoix);
+		panier.push(newChoice);
 	} else {
-		elementExistant.quantity += nouveauchoix.quantity;
+		elementExistant.quantity += newChoice.quantity;
 	}
+
 	//appel fonction sauvegarder panier
-	sauvegarderPanier(panier);
+	saveCart(panier);
 }

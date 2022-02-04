@@ -1,87 +1,99 @@
 //******************affichage de la page produit************************
-// Récupérer l'url
-const Url = window.location.href;
-console.log(Url);
+// ! requires cart_library.js (utilisation addToCart)
 
-// Parse l'url récupéré pour trouver l'id
-const UrlProduct = new URL(Url);
-console.log(UrlProduct);
+//declaration fonction pour afficher un produit dans la page product.html
+//et action bouton ajouter au panier
+/**
+ * récuperation d'un produit dans la base de données
+ * @param : none
+ * @return :
+ *
+ */
+const onLoadOne = async function () {
+	// Récupérer l'url
+	const Url = window.location.href;
 
-// Récupérer l'id depuis l'URL
-const idProduct = UrlProduct.searchParams.get("id");
-console.log(idProduct);
+	// Parse l'url récupéré pour trouver l'id
+	const UrlProduct = new URL(Url);
 
-// Fetch le produit d'id {id}
-const UrlFetch = "http://localhost:3000/api/products/" + idProduct;
-console.log(UrlFetch);
+	// Récupérer l'id depuis l'URL
+	const idProduct = UrlProduct.searchParams.get("id");
 
-fetch(UrlFetch)
-	.then(function (res) {
-		return res.json();
-	})
-	.then(function (product) {
-		console.log(product);
-		console.log(product.imageUrl);
-		console.log(product.name);
-		// Insérer les éléments correspondants dans le HTML :
-		//insertion image
+	// Fetch le produit d'id {id}
+	const UrlFetch = "http://localhost:3000/api/products/" + idProduct;
+	const product = await fetch(UrlFetch)
+		.then(function (res) {
+			return res.json();
+		})
+
+		.catch(function (err) {
+			alert("Un problème d'accès au serveur est survenu.\n" + err);
+		});
+
+	console.log(product);
+
+	// Insérer les éléments du produit dans le HTML :
+	//insertion image
+	document
+		.querySelector(".item__img")
+		.insertAdjacentHTML(
+			"beforeend",
+			`<img src= "${product.imageUrl}" alt="${product.altTxt}">`
+		);
+
+	//insertion détails éléments
+	document
+		.getElementById("title")
+		.insertAdjacentHTML("beforeend", product.name);
+
+	document
+		.getElementById("price")
+		.insertAdjacentHTML("beforeend", product.price);
+
+	document
+		.getElementById("description")
+		.insertAdjacentHTML("beforeend", product.description);
+
+	//insertion des couleurs dans le menu déroulant
+	for (let color of product.colors) {
 		document
-			.querySelector(".item__img")
+			.getElementById("colors")
 			.insertAdjacentHTML(
 				"beforeend",
-				`<img src= "${product.imageUrl}" alt="${product.altTxt}">`
+				`<option value="${color}"> ${color} </option>  `
 			);
+	}
 
-		//insertion détails éléments
-		document
-			.getElementById("title")
-			.insertAdjacentHTML("beforeend", product.name);
+	//***************gestion de l'ajout au local storage par le bouton ajouter au panier********************
 
-		document
-			.getElementById("price")
-			.insertAdjacentHTML("beforeend", product.price);
+	//écoute du bouton ajouter au panier et recupération d'un choix utilisateur
+	document
+		.getElementById("addToCart")
+		.addEventListener("click", function (event) {
+			event.preventDefault();
 
-		document
-			.getElementById("description")
-			.insertAdjacentHTML("beforeend", product.description);
+			//récupération du choix utilisateur
+			let chosenColor = document.getElementById("colors").value;
 
-		//insertion des couleurs dans le menu déroulant
-		for (let color of product.colors) {
-			document
-				.getElementById("colors")
-				.insertAdjacentHTML(
-					"beforeend",
-					`<option value="${color}"> ${color} </option>  `
-				);
-		}
-	})
+			let chosenQuantity = document.getElementById("quantity").value;
 
-	.catch(function (err) {
-		alert("Erreur:" + err);
-	});
+			//création d'un objet pour stocker le choix utilisateur
+			let choice = {
+				id: idProduct,
+				color: chosenColor,
+				quantity: parseInt(chosenQuantity),
+			};
+			console.log(choice);
 
-//***************gestion de l'ajout au local storage par le bouton envoyer********************
+			// appel fonction définie dans cart_library.js
+			//definition conditions ajout au panier
+			if (chosenColor == "" || chosenQuantity == 0) {
+				alert("Vous devez choisir une couleur et une quantité !");
+			} else {
+				addToCart(choice);
+			}
+		});
+};
 
-//écoute du bouton ajouter au panier et recupération d'un choix utilisateur
-document
-	.getElementById("addToCart")
-	.addEventListener("click", function (event) {
-		event.preventDefault();
-
-		//récupération du choix utilisateur
-		let choixColor = document.getElementById("colors").value;
-		console.log(choixColor);
-		let choixQuantity = document.getElementById("quantity").value;
-		console.log(choixQuantity);
-
-		//création d'un objet pour stocker le choix utilisateur
-		let choix = {
-			id: idProduct,
-			color: choixColor,
-			quantity: parseInt(choixQuantity),
-		};
-		console.log(choix);
-
-		// appel fonction définie dans gestion_panier.js
-		ajoutPanier(choix);
-	});
+//appel fonction onLoadOne
+onLoadOne();

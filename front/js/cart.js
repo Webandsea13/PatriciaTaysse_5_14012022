@@ -1,6 +1,21 @@
 //récupérer le panier dans le local storage via la fonction recupererPanier définie dans gestion_panier.js
-const panier = recupererPanier();
+const panier = loadCart();
 console.log(panier);
+//si le panier est vide : affichage d'un message
+if (panier == []) {
+	let titre = document.querySelector("h1");
+	console.log(titre);
+	let precision = document.createElement("p");
+	let precisionText = document.createTextNode(
+		"Le panier est vide, retournez en page d'accueil choisir vos articles."
+	);
+	precision.appendChild(precisionText);
+	precision.style.color = "red";
+	console.log(precision);
+	document
+		.getElementById("cartAndFormContainer")
+		.insertBefore(precision, document.querySelector(".cart"));
+}
 
 // cache des prix des produits pour les utiliser en dehors du fetch
 const prixProduits = {};
@@ -22,9 +37,9 @@ const actualiserPrixQuantite = function () {
 	}
 
 	//affichage nombre articles
-	document.getElementById("totalQuantity").innerHTML = `${totalQuantity}`;
+	document.getElementById("totalQuantity").textContent = `${totalQuantity}`;
 	//affichage du prix total
-	document.getElementById("totalPrice").innerHTML = `${totalPrice}`;
+	document.getElementById("totalPrice").textContent = `${totalPrice}`;
 };
 
 //définition de la fonction exécutée au change de la quantité par l'utilisateur (ligne 109)
@@ -43,14 +58,15 @@ const modifQuantity = function (event) {
 	elementExistant.quantity = event.target.value;
 
 	//appel fonction sauvegarder panier
-	sauvegarderPanier(panier);
-	recupererPanier();
+	saveCart(panier);
+	loadCart();
 	console.log(panier);
 
 	actualiserPrixQuantite();
 };
 
 //*************afficher les objets du panier sur la page panier************************
+
 //boucle pour récupérer les objects du panier
 const fetches = [];
 
@@ -69,6 +85,7 @@ for (let p of panier) {
 			//declaration de la constante contenant le html pour un produit du panier
 			//p est un objet du panier provenant du localstorage, product est un objet provenant du backend
 			console.log(product);
+
 			const objectAsHTML = `<article class="cart__item" data-id=${p.id} data-color=${p.color}>
             <div class="cart__item__img">
             <img src="${product.imageUrl}" alt="${product.altTxt}">
@@ -119,13 +136,13 @@ for (let p of panier) {
 					let item = event.target.closest(".cart__item");
 					const choixId = item.dataset.id;
 					const choixColor = item.dataset.color;
-					const panier = recupererPanier();
+					const panier = loadCart();
 
 					const result = panier.filter(
 						(n) => n.id !== choixId && n.color !== choixColor
 					);
 					console.log(result);
-					sauvegarderPanier(result);
+					saveCart(result);
 					//rafraichir page ou afficher nouveau panier
 					window.location.reload();
 				});
@@ -171,7 +188,7 @@ btnOrder.addEventListener("click", (event) => {
 	console.log(products);
 
 	//Controle du formulaire
-	//controle du champ prénom
+	//controle du champ prénom (le regexp.test() renvoie true ou false)
 	FirstNameControl(this);
 
 	function FirstNameControl() {
@@ -181,7 +198,7 @@ btnOrder.addEventListener("click", (event) => {
 		let firstNameRegExp = new RegExp(`^[A-Za-zéèêàç -]+$`, `g`);
 
 		let isValid = firstNameRegExp.test(contact.firstName);
-		console.log(isValid);
+
 		if (isValid) {
 			inputFirstName.style.backgroundColor = "green";
 
@@ -205,7 +222,7 @@ btnOrder.addEventListener("click", (event) => {
 		let lastNameRegExp = new RegExp(`^[A-Za-zéèêàç '-]+$`, `g`);
 
 		let isValid = lastNameRegExp.test(contact.lastName);
-		console.log(isValid);
+
 		if (isValid) {
 			inputLastName.style.backgroundColor = "green";
 
@@ -229,7 +246,7 @@ btnOrder.addEventListener("click", (event) => {
 		let addressRegExp = new RegExp(`^[A-Za-z0-9éèêàç ',-]+$`, `g`);
 
 		let isValid = addressRegExp.test(contact.address);
-		console.log(isValid);
+
 		if (isValid) {
 			inputAddress.style.backgroundColor = "green";
 
@@ -254,7 +271,7 @@ btnOrder.addEventListener("click", (event) => {
 		let cityRegExp = new RegExp(`^[A-Za-z0-9éèêàç '-]+$`, `g`);
 
 		let isValid = cityRegExp.test(contact.city);
-		console.log(isValid);
+
 		if (isValid) {
 			inputCity.style.backgroundColor = "green";
 
@@ -282,7 +299,7 @@ btnOrder.addEventListener("click", (event) => {
 		);
 
 		let isValid = emailRegExp.test(contact.email);
-		console.log(isValid);
+
 		if (isValid) {
 			inputMail.style.backgroundColor = "green";
 
@@ -303,7 +320,8 @@ btnOrder.addEventListener("click", (event) => {
 		LastNameControl() &&
 		addressControl() &&
 		cityControl() &&
-		mailControl()
+		mailControl() &&
+		panier != []
 	) {
 		//appel fonction pour envoyer les données contact et product au serveur
 		sendOrder();
@@ -330,7 +348,7 @@ btnOrder.addEventListener("click", (event) => {
 					"../html/confirmation.html?id=" + `${orderId}`;
 			})
 			.catch(function (err) {
-				alert(erreur);
+				alert(err);
 			});
 	}
 });
