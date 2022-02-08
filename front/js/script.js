@@ -2,9 +2,7 @@
 
 //declaration de la fonction onLoad qui charge les produits sur la page index.html
 /**
- * handler d'affichage de tous les produits stockés dans la base de données
- * @param : none
- * @return :
+ * Appel à l'API et insertion du HTML de tous les produits
  */
 
 const onLoad = function () {

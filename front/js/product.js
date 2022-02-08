@@ -1,13 +1,42 @@
 //******************affichage de la page produit************************
 // ! requires cart_library.js (utilisation addToCart)
 
-//declaration fonction pour afficher un produit dans la page product.html
-//et action bouton ajouter au panier
+//declaration de la fonction callback de l'evenement du bouton "ajouter au panier"
 /**
- * récuperation d'un produit dans la base de données
- * @param : none
- * @return :
- *
+ * Handler d'ajout dans le panier
+ * @param {string} idProduct (l'id du produit affiché)
+ */
+
+const addToCartCallback = function (idProduct) {
+	return function (event) {
+		event.preventDefault();
+		//récupération du choix utilisateur
+		let chosenColor = document.getElementById("colors").value;
+
+		let chosenQuantity = document.getElementById("quantity").value;
+
+		//création d'un objet pour stocker le choix utilisateur
+		let choice = {
+			id: idProduct,
+			color: chosenColor,
+			quantity: parseInt(chosenQuantity),
+		};
+		console.log(choice);
+		// appel fonction définie dans cart_library.js
+		//definition conditions ajout au panier
+		if (chosenColor == "" || chosenQuantity == 0) {
+			alert("Vous devez choisir une couleur et une quantité !");
+		} else {
+			addToCart(choice);
+		}
+	};
+};
+
+//declaration fonction pour afficher un produit dans la page product.html
+//et écoute bouton ajouter au panier
+/**
+ * récuperation d'un produit dans la base de données et insertion du HTML
+ * écoute du bouton ajouter au panier
  */
 const onLoadOne = async function () {
 	// Récupérer l'url
@@ -36,23 +65,22 @@ const onLoadOne = async function () {
 	//insertion image
 	document
 		.querySelector(".item__img")
-		.insertAdjacentHTML(
-			"beforeend",
-			`<img src= "${product.imageUrl}" alt="${product.altTxt}">`
-		);
+		.appendChild(document.createElement("img"));
+	document
+		.querySelector(".item__img img")
+		.setAttribute("src", `${product.imageUrl}`);
+	document
+		.querySelector(".item__img img")
+		.setAttribute("alt", `${product.altTxt}`);
 
 	//insertion détails éléments
-	document
-		.getElementById("title")
-		.insertAdjacentHTML("beforeend", product.name);
+	document.getElementById("title").textContent = `${product.name}`;
 
-	document
-		.getElementById("price")
-		.insertAdjacentHTML("beforeend", product.price);
+	document.getElementById("price").textContent = `${product.price}`;
 
-	document
-		.getElementById("description")
-		.insertAdjacentHTML("beforeend", product.description);
+	document.getElementById(
+		"description"
+	).textContent = `${product.description}`;
 
 	//insertion des couleurs dans le menu déroulant
 	for (let color of product.colors) {
@@ -64,35 +92,11 @@ const onLoadOne = async function () {
 			);
 	}
 
-	//***************gestion de l'ajout au local storage par le bouton ajouter au panier********************
+	//écoute du bouton ajouter au panier et appel fonction callback
 
-	//écoute du bouton ajouter au panier et recupération d'un choix utilisateur
 	document
 		.getElementById("addToCart")
-		.addEventListener("click", function (event) {
-			event.preventDefault();
-
-			//récupération du choix utilisateur
-			let chosenColor = document.getElementById("colors").value;
-
-			let chosenQuantity = document.getElementById("quantity").value;
-
-			//création d'un objet pour stocker le choix utilisateur
-			let choice = {
-				id: idProduct,
-				color: chosenColor,
-				quantity: parseInt(chosenQuantity),
-			};
-			console.log(choice);
-
-			// appel fonction définie dans cart_library.js
-			//definition conditions ajout au panier
-			if (chosenColor == "" || chosenQuantity == 0) {
-				alert("Vous devez choisir une couleur et une quantité !");
-			} else {
-				addToCart(choice);
-			}
-		});
+		.addEventListener("click", addToCartCallback(idProduct));
 };
 
 //appel fonction onLoadOne

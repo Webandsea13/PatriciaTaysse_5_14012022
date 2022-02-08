@@ -1,27 +1,30 @@
+// ! requires cart-library.js
+// !requires form_validation.js
+
 //récupérer le panier dans le local storage via la fonction recupererPanier définie dans gestion_panier.js
 const panier = loadCart();
 console.log(panier);
 //si le panier est vide : affichage d'un message
-if (panier == []) {
+if (panier.length == 0) {
 	let titre = document.querySelector("h1");
-	console.log(titre);
 	let precision = document.createElement("p");
 	let precisionText = document.createTextNode(
-		"Le panier est vide, retournez en page d'accueil choisir vos articles."
+		"Le panier est vide ! Retournez en page d'accueil choisir vos articles."
 	);
 	precision.appendChild(precisionText);
 	precision.style.color = "red";
-	console.log(precision);
+	precision.style.backgroundColor = "white";
 	document
 		.getElementById("cartAndFormContainer")
 		.insertBefore(precision, document.querySelector(".cart"));
 }
 
 // cache des prix des produits pour les utiliser en dehors du fetch
-const prixProduits = {};
+const priceProducts = {};
+console.log("priceProducts :" + priceProducts);
 
 //déclaration fonction qui affiche le prix total et la quantité totale des produits du panier
-const actualiserPrixQuantite = function () {
+const refreshPriceAndQuantity = function () {
 	let totalQuantity = 0;
 	let totalPrice = 0;
 	for (let p of panier) {
@@ -29,10 +32,10 @@ const actualiserPrixQuantite = function () {
 		totalQuantity += parseInt(p.quantity);
 
 		//cumul prix
-		//on récupère le prix stocké dans prixProduits grace à la clé p.id
+		//on récupère le prix stocké dans priceProducts grace à la clé p.id
 		//pour le mettre dans la constante prixProduit
-		const prixProduit = prixProduits[p.id];
-		let price = prixProduit * p.quantity;
+		const priceProduct = priceProducts[p.id];
+		let price = priceProduct * p.quantity;
 		totalPrice += price;
 	}
 
@@ -42,27 +45,27 @@ const actualiserPrixQuantite = function () {
 	document.getElementById("totalPrice").textContent = `${totalPrice}`;
 };
 
-//définition de la fonction exécutée au change de la quantité par l'utilisateur (ligne 109)
-const modifQuantity = function (event) {
+//définition de la fonction exécutée au change de la quantité par l'utilisateur (ligne 126)
+const changeQuantityCallback = function (event) {
 	//trouver élément proche du clic et contenant les informations du produit concerné
 	let item = event.target.closest(".cart__item");
 
 	//récupérer id et couleur produit concerné
-	const choixId = item.dataset.id;
-	const choixColor = item.dataset.color;
+	const chosenId = item.dataset.id;
+	const chosenColor = item.dataset.color;
 	//appliquer la nouvelle quantité dans le tableau panier
 	const elementExistant = panier.find(
-		(x) => x.id == choixId && x.color == choixColor
+		(x) => x.id == chosenId && x.color == chosenColor
 	);
 
 	elementExistant.quantity = event.target.value;
 
 	//appel fonction sauvegarder panier
 	saveCart(panier);
-	loadCart();
+	panier = loadCart();
 	console.log(panier);
 
-	actualiserPrixQuantite();
+	refreshPriceAndQuantity();
 };
 
 //*************afficher les objets du panier sur la page panier************************
@@ -108,22 +111,22 @@ for (let p of panier) {
             </div>
             </article>`;
 
-			// stocker le prix en "cache"
-			prixProduits[p.id] = product.price;
-
 			//insertion du html
 			document
 				.getElementById("cart__items")
 				.insertAdjacentHTML("beforeend", objectAsHTML);
 
+			// stocker le prix en "cache"
+			priceProducts[p.id] = product.price;
+
 			//**********************changement quantité par l'utilisateur*********************
 
-			//écoute click + appel fonction modif quantity
+			//écoute click + appel fonction changeQuantityCallback
 			//récupérer dans un tableau les éléments susceptibles d'être cliqués +/-
 			let tabItemQuantity = document.querySelectorAll(".itemQuantity");
 
 			for (let itemQuantity of tabItemQuantity) {
-				itemQuantity.addEventListener("change", modifQuantity);
+				itemQuantity.addEventListener("change", changeQuantityCallback);
 			}
 
 			//*************************suppression d'un article************* */
@@ -134,12 +137,12 @@ for (let p of panier) {
 			tabDeleteItems.forEach(function (delIt) {
 				delIt.addEventListener("click", function (event) {
 					let item = event.target.closest(".cart__item");
-					const choixId = item.dataset.id;
-					const choixColor = item.dataset.color;
+					const chosenId = item.dataset.id;
+					const chosenColor = item.dataset.color;
 					const panier = loadCart();
 
 					const result = panier.filter(
-						(n) => n.id !== choixId && n.color !== choixColor
+						(n) => n.id !== chosenId && n.color !== chosenColor
 					);
 					console.log(result);
 					saveCart(result);
@@ -156,7 +159,7 @@ for (let p of panier) {
 }
 
 Promise.all(fetches).then(() => {
-	actualiserPrixQuantite();
+	refreshPriceAndQuantity();
 });
 
 //**************gestion du formulaire*********************** */
@@ -171,6 +174,11 @@ const btnOrder = document.querySelector("#order");
 btnOrder.addEventListener("click", (event) => {
 	event.preventDefault();
 
+	if (panier.length == 0) {
+		alert("Attention, le panier est vide !");
+		return;
+	}
+	//creation objet contact
 	let contact = {
 		firstName: document.querySelector("#firstName").value,
 		lastName: document.querySelector("#lastName").value,
@@ -181,147 +189,19 @@ btnOrder.addEventListener("click", (event) => {
 
 	console.log(contact);
 
-	let products = [];
-	for (let p of panier) {
-		products.push(p.id);
-	}
+	//creation du tableau products contenant les id des produits du panier
+	products = panier.map((x) => x.id);
 	console.log(products);
 
-	//Controle du formulaire
-	//controle du champ prénom (le regexp.test() renvoie true ou false)
-	FirstNameControl(this);
-
-	function FirstNameControl() {
-		let inputFirstName = document.querySelector("#firstName");
-		let message = document.querySelector("#firstNameErrorMsg");
-
-		let firstNameRegExp = new RegExp(`^[A-Za-zéèêàç -]+$`, `g`);
-
-		let isValid = firstNameRegExp.test(contact.firstName);
-
-		if (isValid) {
-			inputFirstName.style.backgroundColor = "green";
-
-			message.innerHTML =
-				'<span style="color:green">Prénom valide</span>';
-			return true;
-		} else {
-			inputFirstName.style.backgroundColor = "#FF6F61";
-
-			message.textContent = "Prénom invalide";
-			return false;
-		}
-	}
-	//controle du champ nom
-	LastNameControl(this);
-
-	function LastNameControl() {
-		let inputLastName = document.querySelector("#lastName");
-		let message = document.querySelector("#lastNameErrorMsg");
-
-		let lastNameRegExp = new RegExp(`^[A-Za-zéèêàç '-]+$`, `g`);
-
-		let isValid = lastNameRegExp.test(contact.lastName);
-
-		if (isValid) {
-			inputLastName.style.backgroundColor = "green";
-
-			message.innerHTML = '<span style="color:green">Nom valide</span>';
-			return true;
-		} else {
-			inputLastName.style.backgroundColor = "#FF6F61";
-
-			message.textContent = "Nom invalide";
-			return false;
-		}
-	}
-
-	//controle du champ adresse
-	addressControl(this);
-
-	function addressControl() {
-		let inputAddress = document.querySelector("#address");
-		let message = document.querySelector("#addressErrorMsg");
-
-		let addressRegExp = new RegExp(`^[A-Za-z0-9éèêàç ',-]+$`, `g`);
-
-		let isValid = addressRegExp.test(contact.address);
-
-		if (isValid) {
-			inputAddress.style.backgroundColor = "green";
-
-			message.innerHTML =
-				'<span style="color:green">Adresse valide</span>';
-			return true;
-		} else {
-			inputAddress.style.backgroundColor = "#FF6F61";
-
-			message.textContent = "Adresse invalide, exemple: 10 rue du port ";
-			return false;
-		}
-	}
-
-	//controle du champ ville
-	cityControl(this);
-
-	function cityControl() {
-		let inputCity = document.querySelector("#city");
-		let message = document.querySelector("#cityErrorMsg");
-
-		let cityRegExp = new RegExp(`^[A-Za-z0-9éèêàç '-]+$`, `g`);
-
-		let isValid = cityRegExp.test(contact.city);
-
-		if (isValid) {
-			inputCity.style.backgroundColor = "green";
-
-			message.innerHTML = '<span style="color:green">Ville valide</span>';
-			return true;
-		} else {
-			inputCity.style.backgroundColor = "#FF6F61";
-
-			message.textContent =
-				"Ville invalide, exemple: 33400 Andernos-les-Bains";
-			return false;
-		}
-	}
-
-	// contrôle du champ Email
-	mailControl(this);
-
-	function mailControl() {
-		let inputMail = document.querySelector("#email");
-		let message = document.querySelector("#emailErrorMsg");
-
-		let emailRegExp = new RegExp(
-			`^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9._-]+[.][a-z]{2,8}$`,
-			`g`
-		);
-
-		let isValid = emailRegExp.test(contact.email);
-
-		if (isValid) {
-			inputMail.style.backgroundColor = "green";
-
-			message.innerHTML = '<span style="color:green">Email valide</span>';
-			return true;
-		} else {
-			inputMail.style.backgroundColor = "#FF6F61";
-
-			message.textContent = "Email invalide, exemple: contact@monsite.fr";
-			return false;
-		}
-	}
 	///////////////////////////////////////////////////////////
 	//si tous les champs du formulaires sont valides//
 	////////////////////////////////////////////////////////////
 	if (
-		FirstNameControl() &&
-		LastNameControl() &&
-		addressControl() &&
-		cityControl() &&
-		mailControl() &&
-		panier != []
+		FirstNameControl(contact) &&
+		LastNameControl(contact) &&
+		addressControl(contact) &&
+		cityControl(contact) &&
+		mailControl(contact)
 	) {
 		//appel fonction pour envoyer les données contact et product au serveur
 		sendOrder();
