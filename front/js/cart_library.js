@@ -4,12 +4,12 @@
  */
 function loadCart() {
 	let panierLinea = localStorage.getItem("panierLocalstorage");
-	let panier = JSON.parse(panierLinea);
+	let cart = JSON.parse(panierLinea);
 
-	if (panier == null) {
+	if (cart == null) {
 		return [];
 	}
-	return panier;
+	return cart;
 }
 
 /**
@@ -31,19 +31,19 @@ function saveCart(panier) {
 function addToCart(newChoice) {
 	alert("Votre choix vient d'être ajouté au panier");
 	// appel fonction Récupérer le panier existant depuis le local storage
-	const panier = loadCart();
+	const cart = loadCart();
 
 	// Ajouter l'élément dans panier ou incrémenter la quantité si élément identique déjà existant
 	//recherche d'un élément identique :
-	const elementExistant = panier.find(
+	const elementExistant = cart.find(
 		(x) => x.id == newChoice.id && x.color == newChoice.color
 	);
 	if (elementExistant == null) {
-		panier.push(newChoice);
+		cart.push(newChoice);
 	} else {
 		elementExistant.quantity += newChoice.quantity;
 	}
 
 	//appel fonction sauvegarder panier
-	saveCart(panier);
+	saveCart(cart);
 }
