@@ -1,9 +1,5 @@
 /****************gestion du formulaire*************** */
 
-//controle du champ prénom (le regexp.test() renvoie true ou false)
-
-//definition des 3 regexp utilisées : nom, localisation, email
-
 //declaration des fonctions de validation des champs du formulaire
 
 function FirstNameControl(contact) {
@@ -23,6 +19,7 @@ function FirstNameControl(contact) {
 		return false;
 	}
 }
+
 //controle du champ nom
 
 function LastNameControl(contact) {

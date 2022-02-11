@@ -5,7 +5,10 @@
 /////definition des fonctions utilisées dans le fichier////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 
-//définition fonction qui affiche le prix total et la quantité totale des produits du panier
+//définition fonction qui calcule et affiche le prix total et la quantité totale des produits du panier
+/**
+ * Met à jour le prix total et la quantité totale
+ */
 const refreshPriceAndQuantity = function () {
 	let totalQuantity = 0;
 	let totalPrice = 0;
@@ -28,6 +31,10 @@ const refreshPriceAndQuantity = function () {
 };
 
 //définition de la fonction exécutée au change de la quantité par l'utilisateur
+/**
+ * Handler de changement de quantité d'un produit
+ * @param {event} evenement changement quantité
+ */
 const changeQuantityCallback = function (event) {
 	//trouver élément proche du clic et contenant les informations du produit concerné
 	let item = event.target.closest(".cart__item");
@@ -50,6 +57,10 @@ const changeQuantityCallback = function (event) {
 };
 
 //definition de la fonction exécutée à la suppression d'un produit du panier par l'utilisateur
+/**
+ * Handler de suppression d'un produit du panier
+ * @param {event} evenement suppression
+ */
 const deleteItemCallback = function (event) {
 	let item = event.target.closest(".cart__item");
 	const chosenId = item.dataset.id;
@@ -66,6 +77,9 @@ const deleteItemCallback = function (event) {
 };
 
 // définition de la fonction qui écoute le bouton Commander
+/**
+ * écoute du click "commander"
+ */
 const submitOrder = function () {
 	//selection du bouton envoyer
 	const btnOrder = document.querySelector("#order");
@@ -76,6 +90,11 @@ const submitOrder = function () {
 };
 
 //definition de la fonction exécutée au click du bouton commander
+/**
+ * Vérifie le formulaire et envoie la commande
+ * @param {event} evenement click "commander"
+ *
+ */
 const formSubmitCallback = function (event) {
 	event.preventDefault();
 
@@ -111,6 +130,10 @@ const formSubmitCallback = function (event) {
 		//appel fonction pour envoyer les données contact et product au serveur
 		sendOrder();
 	}
+
+	/**
+	 * requete POST, recupération numéro de commande et redirection sur la page confirmation
+	 */
 	function sendOrder() {
 		fetch("http://localhost:3000/api/products/order", {
 			method: "POST",
@@ -162,7 +185,7 @@ if (cart.length == 0) {
 
 // cache des prix des produits pour les utiliser en dehors du fetch
 const priceProducts = {};
-console.log("priceProducts :" + priceProducts);
+
 //boucle pour récupérer les objects du panier
 //création du tableau contenant les promesses des fetches
 const fetches = [];
@@ -210,8 +233,9 @@ for (let p of cart) {
 				.getElementById("cart__items")
 				.insertAdjacentHTML("beforeend", objectAsHTML);
 
-			// stocker le prix en "cache"
+			// stocker le prix en "cache" dans l'objet PriceProducts, clé=id et valeur=prix
 			priceProducts[p.id] = product.price;
+			console.log(priceProducts);
 
 			//**********************changement quantité par l'utilisateur*********************
 
@@ -243,9 +267,6 @@ Promise.all(fetches).then(() => {
 	//calcul et affichage quantité totale et prix total
 	refreshPriceAndQuantity();
 });
-
-//*************appel fonction affichage de la page*************** */
-//cartDisplay();
 
 //**************appel fonction action du bouton commander*********************** */
 

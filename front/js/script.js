@@ -2,7 +2,7 @@
 
 //declaration de la fonction onLoad qui charge les produits sur la page index.html
 /**
- * Appel à l'API et insertion du HTML de tous les produits
+ * Appel à l'API, retourne un tableau d'objets, et insertion du HTML de tous les produits
  */
 
 const onLoad = function () {

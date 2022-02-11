@@ -14,7 +14,7 @@ function loadCart() {
 
 /**
  * envoyer le panier vers le local storage pour sauvegarde
- * @param {array}
+ * @param {array} le panier
  * @returns  {string} panierLinea
  */
 function saveCart(panier) {
@@ -41,7 +41,7 @@ function addToCart(newChoice) {
 	if (elementExistant == null) {
 		cart.push(newChoice);
 	} else {
-		elementExistant.quantity += newChoice.quantity;
+		elementExistant.quantity += parseInt(newChoice.quantity);
 	}
 
 	//appel fonction sauvegarder panier
