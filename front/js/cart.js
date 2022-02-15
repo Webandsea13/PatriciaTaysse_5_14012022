@@ -128,13 +128,13 @@ const formSubmitCallback = function (event) {
 		mailControl(contact)
 	) {
 		//appel fonction pour envoyer les données contact et product au serveur
-		sendOrder();
+		sendOrder(contact, products);
 	}
 
 	/**
 	 * requete POST, recupération numéro de commande et redirection sur la page confirmation
 	 */
-	function sendOrder() {
+	function sendOrder(contact, products) {
 		fetch("http://localhost:3000/api/products/order", {
 			method: "POST",
 			headers: {
