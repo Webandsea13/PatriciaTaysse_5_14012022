@@ -1,6 +1,6 @@
 /**
  * récupérer le panier depuis le local storage
- * @returns  {array} panier
+ * @returns  {array} cart le panier
  */
 function loadCart() {
 	let panierLinea = localStorage.getItem("panierLocalstorage");
@@ -14,7 +14,7 @@ function loadCart() {
 
 /**
  * envoyer le panier vers le local storage pour sauvegarde
- * @param {array} le panier
+ * @param {array} panier le panier
  */
 function saveCart(panier) {
 	let panierLinea = JSON.stringify(panier);
@@ -23,11 +23,10 @@ function saveCart(panier) {
 
 /**
  * fonction ajouter un choix (!format objet) au panier ou cumuler quantité si
- * choix déjà existant dans le panier (id et couleur)--fonction utilisée dans product.js
+ * choix déjà existant dans le panier (id et couleur)
  * @param  {object} newChoice (choix de l'utilisateur : id, couleur et quantité)
  */
 function addToCart(newChoice) {
-	alert("Votre choix vient d'être ajouté au panier");
 	// appel fonction Récupérer le panier existant depuis le local storage
 	const cart = loadCart();
 
@@ -41,7 +40,14 @@ function addToCart(newChoice) {
 	} else {
 		elementExistant.quantity += parseInt(newChoice.quantity);
 	}
-
+	alert("Votre choix vient d'être ajouté au panier");
 	//appel fonction sauvegarder panier
 	saveCart(cart);
+}
+
+/**
+ *Vide le panier quand la commande est validée
+ */
+function clearCart() {
+	localStorage.clear();
 }

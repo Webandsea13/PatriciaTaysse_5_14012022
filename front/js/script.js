@@ -1,10 +1,6 @@
-/***************affichage de la page d'accueil****************************/
-
-//declaration de la fonction onLoad qui charge les produits sur la page index.html
 /**
- * Appel à l'API, retourne un tableau d'objets, et insertion du HTML de tous les produits
+ * retourne un tableau d'objets, et insertion du HTML de tous les produits
  */
-
 const onLoad = function () {
 	const itemsSection = document.getElementById("items");
 
@@ -15,9 +11,8 @@ const onLoad = function () {
 		.then(function (products) {
 			//les produits sont retournés sous forme de tableau d'objets
 			console.log(products);
-			//boucle pour récupérer les objets du tableau
+			//boucle pour récupérer les objets du tableau et les afficher dans le HTML
 			for (let product of products) {
-				//déclaration de la constante contenant le html pour afficher les valeurs de chaque objet grâce aux clefs
 				const productAsHTML = `<a href="./product.html?id=${product._id}">
 					<article>
 						<img src="${product.imageUrl}" alt=${product.altTxt}>

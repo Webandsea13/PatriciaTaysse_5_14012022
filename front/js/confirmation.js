@@ -1,6 +1,3 @@
-///*******récupérer l'orderId dans l'url pour l'afficher sur la page */
-
-//declaration fonction
 /**
  * récupère et affiche le numéro de commande
  */
@@ -21,6 +18,3 @@ function displayOrderId() {
 
 //appel fonction
 displayOrderId();
-
-//reset localStorage
-localStorage.clear();

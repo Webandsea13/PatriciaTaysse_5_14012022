@@ -1,12 +1,9 @@
-//******************affichage de la page produit************************
 // ! requires cart_library.js (utilisation addToCart)
 
-//declaration de la fonction callback de l'evenement du bouton "ajouter au panier"
 /**
  * Handler d'ajout dans le panier
  * @param {string} idProduct (l'id du produit affiché)
  */
-
 const addToCartCallback = function (idProduct) {
 	return function (event) {
 		event.preventDefault();
@@ -22,7 +19,7 @@ const addToCartCallback = function (idProduct) {
 			quantity: parseInt(chosenQuantity),
 		};
 		console.log(choice);
-		// appel fonction définie dans cart_library.js
+		// appel fonction addToCart définie dans cart_library.js
 		//definition conditions ajout au panier
 		if (chosenColor == "" || chosenQuantity == 0) {
 			alert("Vous devez choisir une couleur et une quantité !");
@@ -32,25 +29,23 @@ const addToCartCallback = function (idProduct) {
 	};
 };
 
-//declaration fonction pour afficher un produit dans la page product.html
-//et écoute bouton ajouter au panier
 /**
  * récuperation d'un produit dans la base de données et insertion du HTML
  * écoute du bouton ajouter au panier
  */
-const onLoadOne = async function () {
+const onLoad = async function () {
 	// Récupérer l'url
-	const Url = window.location.href;
+	const url = window.location.href;
 
 	// Parse l'url récupéré pour trouver l'id
-	const UrlProduct = new URL(Url);
+	const urlProduct = new URL(url);
 
 	// Récupérer l'id depuis l'URL
-	const idProduct = UrlProduct.searchParams.get("id");
+	const idProduct = urlProduct.searchParams.get("id");
 
 	// Fetch le produit d'id {id}
-	const UrlFetch = "http://localhost:3000/api/products/" + idProduct;
-	const product = await fetch(UrlFetch)
+	const urlFetch = "http://localhost:3000/api/products/" + idProduct;
+	const product = await fetch(urlFetch)
 		.then(function (res) {
 			return res.json();
 		})
@@ -99,5 +94,5 @@ const onLoadOne = async function () {
 		.addEventListener("click", addToCartCallback(idProduct));
 };
 
-//appel fonction onLoadOne
-onLoadOne();
+//appel fonction
+onLoad();

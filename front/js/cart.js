@@ -1,17 +1,18 @@
 // ! requires cart-library.js
 // ! requires form_validation.js
-
-//creation tableau des articles pour regrouper les données venant du localStorage et du fetch
+/**
+ * tableau des articles pour regrouper les données venant du localStorage et du fetch
+ */
 let articlesArray = [];
-//declaration tableau panier avec élément provenant du localstorage (id, couleur, quantité)
+/**
+ *  tableau panier avec élément provenant du localstorage (id, couleur, quantité)
+ */
 let cart;
 
 ////////////////////////////////////////////////////////////////////////////////////
 /////definition des fonctions utilisées dans le fichier////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 
-//fonction qui réunit dans un objet article les informations du fetch
-//et du local storage, article pushé dans un tableau articlesArray
 /**
  * récupération des données du localStorage et du backend par un fetch
  * remplissage tableau articlesAray avec objet article
@@ -26,15 +27,15 @@ const getMixedData = async function () {
 	await Promise.all(
 		cart.map(async function (cartElement) {
 			const idProduct = cartElement.id;
-			const UrlFetch = "http://localhost:3000/api/products/" + idProduct;
-			const oneFetch = await fetch(UrlFetch)
+			const urlFetch = "http://localhost:3000/api/products/" + idProduct;
+			const oneFetch = await fetch(urlFetch)
 				.then(function (res) {
 					return res.json();
 				})
 				.catch(function (err) {
 					alert(err);
 				});
-			let article = {
+			const article = {
 				id: cartElement.id,
 				color: cartElement.color,
 				quantity: cartElement.quantity,
@@ -44,47 +45,19 @@ const getMixedData = async function () {
 				altTxt: oneFetch.altTxt,
 			};
 			articlesArray.push(article);
-
-			console.log(articlesArray);
 		})
 	);
-	/*for (let c of cart) {
-		const idProduct = c.id;
-		const UrlFetch = "http://localhost:3000/api/products/" + idProduct;
-
-		const oneFetch = await fetch(UrlFetch)
-			.then(function (res) {
-				return res.json();
-			})
-			.catch(function (err) {
-				alert(err);
-			});
-
-		let article = {
-			id: c.id,
-			color: c.color,
-			quantity: c.quantity,
-			price: oneFetch.price,
-			name: oneFetch.name,
-			url: oneFetch.imageUrl,
-			altTxt: oneFetch.altTxt,
-		};
-		articlesArray.push(article);
-
-		console.log(articlesArray);
-	}*/
+	console.log(articlesArray);
 };
 
-//fonction callback de l'événement modification de quantité
-//mise à jour de articlesArray et cart avec la nouvelle quantité
-//mise à jour des totaux du panier
 /**
  * Handler de changement de quantité d'un produit
- * @param {*} event
+ * mise à jour de cart et de articlesArray, mise à jour des totaux
+ * @param {Event} event changement quantité
  */
 const changeQuantityCallback = function (event) {
 	//trouver élément proche du clic et contenant les informations du produit concerné
-	let item = event.target.closest(".cart__item");
+	const item = event.target.closest(".cart__item");
 
 	//récupérer id et couleur produit concerné
 	const chosenId = item.dataset.id;
@@ -110,43 +83,37 @@ const changeQuantityCallback = function (event) {
 	refreshPriceAndQuantity();
 };
 
-// fonction callback exécutée à la suppression d'un produit du panier par l'utilisateur
-//modification de articlesArray et cart
-//affichage du nouveau panier
 /**
- * Handler de suppression d'un produit du panier
- * @param {event} evenement suppression
+ * Handler de suppression d'un produit du panier et affichage du nouveau panier
+ * @param {Event} event suppression
  */
 const deleteItemCallback = function (event) {
 	let item = event.target.closest(".cart__item");
 	const chosenId = item.dataset.id;
 	const chosenColor = item.dataset.color;
-	const cart = loadCart();
+	cart = loadCart();
 	//filtrer le panier sans l'élément à supprimer
-	const result = cart.filter(
-		(n) => !(n.id === chosenId && n.color === chosenColor)
-	);
-	console.log(result);
-	saveCart(result);
+	cart = cart.filter((n) => !(n.id === chosenId && n.color === chosenColor));
+	console.log(cart);
+	saveCart(cart);
 	//filter le tableau des articles sans l'element à supprimer
 	articlesArray = articlesArray.filter(
 		(n) => !(n.id === chosenId && n.color === chosenColor)
 	);
 	console.log(articlesArray);
-	//afficher nouveau panier
+	//afficher nouveau panier html
 	displayCart();
 };
 
 /**
  * affichage des articles de articlesArray et des totaux
- * écoute des événements de la page : modification, suppression, commande
+ * écoute des événements de la page : modification, suppression
  */
 const displayCart = function () {
 	document.getElementById("cart__items").innerHTML = "";
 	if (articlesArray.length == 0) {
-		let titre = document.querySelector("h1");
-		let precision = document.createElement("p");
-		let precisionText = document.createTextNode(
+		const precision = document.createElement("p");
+		const precisionText = document.createTextNode(
 			"Le panier est vide ! Retournez en page d'accueil choisir vos articles."
 		);
 		precision.appendChild(precisionText);
@@ -157,7 +124,7 @@ const displayCart = function () {
 			.insertBefore(precision, document.querySelector(".cart"));
 	}
 
-	for (let article of articlesArray) {
+	for (const article of articlesArray) {
 		//declaration de la constante contenant le html pour un produit du panier
 		const objectAsHTML = `<article class="cart__item" data-id=${article.id} data-color=${article.color}>
 				<div class="cart__item__img">
@@ -189,21 +156,15 @@ const displayCart = function () {
 
 	refreshPriceAndQuantity();
 
-	/////////gestion des evenements de la page ///////////////
-
-	//**********************changement quantité par l'utilisateur*********************
-
-	//écoute click + appel fonction changeQuantityCallback
+	//écoute click changement quantité + appel fonction changeQuantityCallback
 	//récupérer dans un tableau les éléments susceptibles d'être cliqués +/-
 	let tabItemQuantity = document.querySelectorAll(".itemQuantity");
 
 	for (let itemQuantity of tabItemQuantity) {
 		itemQuantity.addEventListener("change", changeQuantityCallback);
 	}
-
-	//*************************suppression d'un article************* */
+	//écoute click suppression produit + appel fonction deleteItemCallback
 	//récupérer dans un tableau les éléments susceptibles d'etre cliqués pour la suppression
-
 	let tabDeleteItems = document.querySelectorAll(".deleteItem");
 
 	tabDeleteItems.forEach(function (delIt) {
@@ -217,15 +178,12 @@ const displayCart = function () {
 const refreshPriceAndQuantity = function () {
 	let totalQuantity = 0;
 	let totalPrice = 0;
-	for (let article of articlesArray) {
+	for (const article of articlesArray) {
 		//cumul nombre articles
 		totalQuantity += parseInt(article.quantity);
 
 		//cumul prix
-		//on récupère le prix stocké dans priceProducts grace à la clé p.id
-		//pour le mettre dans la constante prixProduit
-
-		let price = article.price * article.quantity;
+		const price = article.price * article.quantity;
 		totalPrice += price;
 	}
 
@@ -235,21 +193,18 @@ const refreshPriceAndQuantity = function () {
 	document.getElementById("totalPrice").textContent = `${totalPrice}`;
 };
 
-////////////gestion du formulaire/////////////////////
-function submitOrder() {
-	//selection du bouton envoyer
+/**
+ *écoute le bouton commander
+ */
+function formSubmitButton() {
 	const btnOrder = document.querySelector("#order");
-
-	// Écoute  click pour pouvoir créer les éléments à envoyer au backend,
-	// contrôler, valider et envoyer le formulaire via formSubmitCallback
 	btnOrder.addEventListener("click", formSubmitCallback);
 }
 
-//definition de la fonction exécutée au click du bouton commander
 /**
+ * Crée les éléments à envoyer au backend
  * Vérifie le formulaire et envoie la commande
- * @param {event} evenement click "commander"
- *
+ * @param {Event} event click "commander"
  */
 const formSubmitCallback = function (event) {
 	event.preventDefault();
@@ -259,7 +214,7 @@ const formSubmitCallback = function (event) {
 		return;
 	}
 	//creation objet contact
-	let contact = {
+	const contact = {
 		firstName: document.querySelector("#firstName").value,
 		lastName: document.querySelector("#lastName").value,
 		address: document.querySelector("#address").value,
@@ -274,35 +229,34 @@ const formSubmitCallback = function (event) {
 	console.log(products);
 
 	//verification du formulaire avec les fonctions définies dans form_validation.js
-	//si tous les champs du formulaires sont valides
 
 	const validations = [
-		nameControl(
+		nameValidation(
 			document.querySelector("#firstName"),
 			document.querySelector("#firstNameErrorMsg"),
 			"Prénom valide",
 			"Prénom invalide"
 		),
 
-		nameControl(
+		nameValidation(
 			document.querySelector("#lastName"),
 			document.querySelector("#lastNameErrorMsg"),
 			"Nom valide",
 			"Nom invalide"
 		),
-		locationControl(
+		locationValidation(
 			document.querySelector("#address"),
 			document.querySelector("#addressErrorMsg"),
 			"Adresse valide",
 			"Adresse invalide. Exemple : 10 rue du port"
 		),
-		locationControl(
+		locationValidation(
 			document.querySelector("#city"),
 			document.querySelector("#cityErrorMsg"),
 			"Ville valide",
 			"Ville invalide. Exemple : 33510 Andernos-les-Bains"
 		),
-		mailControl(
+		mailValidation(
 			document.querySelector("#email"),
 			document.querySelector("#emailErrorMsg"),
 			"Email valide",
@@ -314,32 +268,30 @@ const formSubmitCallback = function (event) {
 		return;
 	}
 
-	function sendOrder() {
-		fetch("http://localhost:3000/api/products/order", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				accept: "application/json",
-			},
-			body: JSON.stringify({ contact, products }),
+	fetch("http://localhost:3000/api/products/order", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			accept: "application/json",
+		},
+		body: JSON.stringify({ contact, products }),
+	})
+		.then(function (resp) {
+			if (resp.ok) {
+				return resp.json();
+			}
 		})
-			.then(function (response) {
-				if (response.ok) {
-					return response.json();
-				}
-			})
 
-			.then(function (request) {
-				orderId = request.orderId;
-				console.log(orderId);
-				window.location.href =
-					"../html/confirmation.html?id=" + `${orderId}`;
-			})
-			.catch(function (err) {
-				alert(err);
-			});
-	}
-	sendOrder();
+		.then(function (response) {
+			orderId = response.orderId;
+			console.log(orderId);
+			window.location.href =
+				"../html/confirmation.html?id=" + `${orderId}`;
+			clearCart();
+		})
+		.catch(function (err) {
+			alert(err);
+		});
 };
 
 //////////////////////////////////////////////////
@@ -349,7 +301,7 @@ const formSubmitCallback = function (event) {
 const onLoad = async function () {
 	await getMixedData();
 	displayCart();
-	submitOrder();
+	formSubmitButton();
 };
 
 //appel fonction lancement de la page
